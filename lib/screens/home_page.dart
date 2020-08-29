@@ -40,11 +40,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _addWeight() {
     showModalBottomSheet(
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       context: context,
       builder: (context) => Wrap(
         children: [
           Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
