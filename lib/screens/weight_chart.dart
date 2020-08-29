@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:weight_tracker/dateUtil.dart';
 import 'package:weight_tracker/models/weight_record.dart';
 
 class WeightChart extends StatefulWidget {
@@ -14,16 +15,48 @@ class _WeightChartState extends State<WeightChart> {
     const Color(0xff02d39a),
   ];
 
+  List<String> weights = [
+    '0 Kg',
+    '10 Kg',
+    '20 Kg',
+    '30 Kg',
+    '40 Kg',
+    '50 Kg',
+    '60 Kg',
+    '70 Kg',
+    '80 Kg',
+    '90 Kg',
+    '100 Kg',
+    '110 Kg',
+    '120 Kg',
+    '130 Kg'
+  ];
+
   bool showAvg = false;
 
   @override
   Widget build(BuildContext context) {
-    final weightRecords = Provider.of<List<WeightRecord>>(context);
-
-    return Stack(
-      children: <Widget>[
+    final records = Provider.of<List<WeightRecord>>(context);
+    return Column(
+      children: [
+        SizedBox(
+          height: 10,
+        ),
+        FlatButton(
+          onPressed: () {
+            setState(() {
+              showAvg = !showAvg;
+            });
+          },
+          child: Text(
+            'Average',
+            style: TextStyle(
+                fontSize: 12,
+                color: !showAvg ? Colors.white.withOpacity(0.5) : Colors.white),
+          ),
+        ),
         AspectRatio(
-          aspectRatio: 1.70,
+          aspectRatio: 1,
           child: Container(
             decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(
@@ -34,26 +67,8 @@ class _WeightChartState extends State<WeightChart> {
               padding: const EdgeInsets.only(
                   right: 18.0, left: 12.0, top: 24, bottom: 12),
               child: LineChart(
-                showAvg ? avgData() : mainData(weightRecords),
+                showAvg ? avgData(records) : mainData(records),
               ),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 60,
-          height: 34,
-          child: FlatButton(
-            onPressed: () {
-              setState(() {
-                showAvg = !showAvg;
-              });
-            },
-            child: Text(
-              'avg',
-              style: TextStyle(
-                  fontSize: 12,
-                  color:
-                      showAvg ? Colors.white.withOpacity(0.5) : Colors.white),
             ),
           ),
         ),
@@ -61,7 +76,7 @@ class _WeightChartState extends State<WeightChart> {
     );
   }
 
-  LineChartData mainData(List<WeightRecord> weightRecords) {
+  LineChartData mainData(List<WeightRecord> records) {
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -90,15 +105,8 @@ class _WeightChartState extends State<WeightChart> {
             fontSize: 12,
           ),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 2:
-                return weightRecords[1].date;
-              case 5:
-                return 'JUN';
-              case 8:
-                return 'SEP';
-            }
-            return '';
+            print(records[value.toInt()].date);
+            return DateUtil.getDay(records[value.toInt()].date);
           },
           margin: 8,
         ),
@@ -110,21 +118,7 @@ class _WeightChartState extends State<WeightChart> {
             fontSize: 12,
           ),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 1:
-                return '50 Kg';
-              case 2:
-                return '60 Kg';
-              case 3:
-                return '70 Kg';
-              case 4:
-                return '90 Kg';
-              case 5:
-                return '100 Kg';
-              case 6:
-                return '110 Kg';
-            }
-            return '';
+            return value > 0.0 ? weights[value.toInt() - 1] : '';
           },
           reservedSize: 28,
           margin: 12,
@@ -134,20 +128,16 @@ class _WeightChartState extends State<WeightChart> {
           show: true,
           border: Border.all(color: const Color(0xff37434d), width: 1)),
       minX: 0,
-      maxX: 11,
+      maxX: records.length.toDouble() - 1,
       minY: 0,
-      maxY: 7,
+      maxY: weights.length.toDouble(),
       lineBarsData: [
         LineChartBarData(
-          spots: [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-          ],
+          spots: records
+              .asMap()
+              .entries
+              .map((e) => FlSpot(e.key.toDouble(), e.value.wgt / 10))
+              .toList(),
           isCurved: true,
           colors: gradientColors,
           barWidth: 5,
@@ -165,7 +155,12 @@ class _WeightChartState extends State<WeightChart> {
     );
   }
 
-  LineChartData avgData() {
+  LineChartData avgData(List<WeightRecord> records) {
+    double avgWeight = 0.0;
+    records.forEach((element) => avgWeight += element.wgt);
+    avgWeight = (avgWeight / records.length);
+    print('Average weight $avgWeight');
+
     return LineChartData(
       lineTouchData: LineTouchData(enabled: false),
       gridData: FlGridData(
@@ -192,17 +187,10 @@ class _WeightChartState extends State<WeightChart> {
           textStyle: const TextStyle(
               color: Color(0xff68737d),
               fontWeight: FontWeight.bold,
-              fontSize: 16),
+              fontSize: 12),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 2:
-                return 'MAR';
-              case 5:
-                return 'JUN';
-              case 8:
-                return 'SEP';
-            }
-            return '';
+            print(value);
+            return DateUtil.getDay(records[value.toInt()].date);
           },
           margin: 8,
         ),
@@ -211,18 +199,10 @@ class _WeightChartState extends State<WeightChart> {
           textStyle: const TextStyle(
             color: Color(0xff67727d),
             fontWeight: FontWeight.bold,
-            fontSize: 15,
+            fontSize: 12,
           ),
           getTitles: (value) {
-            switch (value.toInt()) {
-              case 1:
-                return '10k';
-              case 3:
-                return '30k';
-              case 5:
-                return '50k';
-            }
-            return '';
+            return value > 0.0 ? weights[value.toInt() - 1] : '';
           },
           reservedSize: 28,
           margin: 12,
@@ -232,20 +212,16 @@ class _WeightChartState extends State<WeightChart> {
           show: true,
           border: Border.all(color: const Color(0xff37434d), width: 1)),
       minX: 0,
-      maxX: 11,
+      maxX: records.length.toDouble() - 1,
       minY: 0,
-      maxY: 6,
+      maxY: weights.length.toDouble(),
       lineBarsData: [
         LineChartBarData(
-          spots: [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
+          spots: records
+              .asMap()
+              .entries
+              .map((e) => FlSpot(e.key.toDouble(), avgWeight / 10))
+              .toList(),
           isCurved: true,
           colors: [
             ColorTween(begin: gradientColors[0], end: gradientColors[1])
