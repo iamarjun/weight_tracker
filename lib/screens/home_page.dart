@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weight_tracker/colors.dart';
 import 'package:weight_tracker/screens/weight_chart.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -167,7 +168,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff252D36),
+      backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         title: Text(widget.title),
       ),

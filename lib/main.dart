@@ -1,5 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:weight_tracker/screens/home_page.dart';
+import 'package:weight_tracker/screens/sign_in.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,8 +15,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Weight Tracker'),
+      home: SignIn(),
     );
   }
 }
-
