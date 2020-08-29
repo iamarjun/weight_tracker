@@ -15,20 +15,20 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  DateTime selectedDate;
+  DateTime _selectedDate;
   TextEditingController _controller;
   AuthService _authService;
 
   Future<Null> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: selectedDate,
+        initialDate: _selectedDate,
         firstDate: DateTime(2020),
         lastDate: DateTime.now());
-    if (picked != null && picked != selectedDate)
+    if (picked != null && picked != _selectedDate)
       setState(() {
-        selectedDate = picked;
-        _controller.text = selectedDate.toLocal().toString().split(' ')[0];
+        _selectedDate = picked;
+        _controller.text = _selectedDate.toLocal().toString().split(' ')[0];
       });
   }
 
@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    selectedDate = DateTime.now();
+    _selectedDate = DateTime.now();
     _controller = TextEditingController();
     _authService = AuthService();
   }
