@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_tracker/dateUtil.dart';
 import 'package:weight_tracker/models/weight_record.dart';
+import 'package:weight_tracker/screens/record_detail.dart';
+import 'package:weight_tracker/service/database.dart';
 
 class WeightChart extends StatefulWidget {
   @override
@@ -37,10 +39,26 @@ class _WeightChartState extends State<WeightChart> {
   @override
   Widget build(BuildContext context) {
     final records = Provider.of<List<WeightRecord>>(context);
+    final databaseService = Provider.of<DatabaseService>(context);
     return Column(
       children: [
         SizedBox(
-          height: 10,
+          height: 25,
+        ),
+        Text(
+          'X Axis: Dates',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+        Text(
+          'Y Axis: Weight in KG',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+        SizedBox(
+          height: 30,
         ),
         FlatButton(
           onPressed: () {
@@ -49,9 +67,9 @@ class _WeightChartState extends State<WeightChart> {
             });
           },
           child: Text(
-            'Average',
+            'Show Average',
             style: TextStyle(
-                fontSize: 12,
+                fontSize: 16,
                 color: !showAvg ? Colors.white.withOpacity(0.5) : Colors.white),
           ),
         ),
@@ -72,6 +90,28 @@ class _WeightChartState extends State<WeightChart> {
             ),
           ),
         ),
+        SizedBox(
+          height: 50,
+        ),
+        MaterialButton(
+          color: Colors.blue,
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => RecordDetail(
+                  databaseService: databaseService,
+                  title: 'Weight Records',
+                ),
+              ),
+            );
+          },
+          child: Text(
+            'Show Details',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        )
       ],
     );
   }

@@ -2,47 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:weight_tracker/colors.dart';
-import 'package:weight_tracker/models/user.dart';
 import 'package:weight_tracker/models/weight_record.dart';
-import 'package:weight_tracker/screens/weight_chart.dart';
-import 'package:weight_tracker/service/auth.dart';
 import 'package:weight_tracker/service/database.dart';
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
+class RecordDetail extends StatefulWidget {
+  final DatabaseService databaseService;
   final String title;
+  RecordDetail({Key key, this.databaseService, this.title}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _RecordDetailState createState() => _RecordDetailState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _RecordDetailState extends State<RecordDetail> {
+  var _weightController;
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController _dateController;
-  TextEditingController _weightController;
-  AuthService _authService;
-
-  Future<Null> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2020),
-        lastDate: DateTime.now());
-    if (picked != null)
-      setState(() {
-        _dateController.text = picked.toLocal().toString().split(' ')[0];
-      });
+  @override
+  void initState() {
+    super.initState();
+    _weightController = TextEditingController();
   }
 
-  void _resetDate() {
-    setState(() {
-      _dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
-    });
+  void _deleteRecord(WeightRecord weightRecord) async {
+    await widget.databaseService.deleteWeightRecord(weightRecord.date);
   }
 
-  void _addWeight(DatabaseService db) {
+  void _editRecord(WeightRecord weightRecord) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -67,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Column(
                   children: [
                     Text(
-                      'Add a record',
+                      'Edit record',
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
@@ -98,42 +84,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                         validator: (String value) {
                           return int.parse(value) > 130
-                              ? 'Weight limit exceeded.'
+                              ? 'Weight limit exceeded'
                               : null;
                         },
                       ),
                     ),
                     SizedBox(
                       height: 5,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(15),
-                        ),
-                        color: Colors.grey[200],
-                      ),
-                      child: TextFormField(
-                        readOnly: true,
-                        showCursor: false,
-                        controller: _dateController,
-                        onTap: () => _selectDate(context),
-                        decoration: const InputDecoration(
-                          suffixIcon: Icon(Icons.date_range),
-                          hintText: 'Add Date',
-                          border: InputBorder.none,
-                        ),
-                        onSaved: (String value) {
-                          // This optional block of code can be used to run
-                          // code when the user saves the form.
-                        },
-                        validator: (String value) {
-                          return value.contains('@')
-                              ? 'Do not use the @ char.'
-                              : null;
-                        },
-                      ),
                     ),
                     SizedBox(
                       height: 10,
@@ -149,7 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           color: Colors.grey[200],
                           child: Text('Cancel'),
                           onPressed: () {
-                            _resetDate();
                             Navigator.of(context).pop();
                           },
                         ),
@@ -168,9 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           onPressed: () async {
                             if (_formKey.currentState.validate()) {
                               var weight = _weightController.text;
-                              var date = _dateController.text;
-                              db.addWeightRecord(weight, date);
-                              _resetDate();
+                              widget.databaseService
+                                  .addWeightRecord(weight, weightRecord.date);
                               Navigator.of(context).pop();
                             }
                           },
@@ -188,53 +143,67 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _dateController = TextEditingController();
-    _weightController = TextEditingController();
-    _authService = AuthService();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final user = Provider.of<User>(context);
-
-    return MultiProvider(
-        providers: [
-          Provider<DatabaseService>(
-            create: (context) => DatabaseService(uid: user.uid),
-          )
-        ],
-        builder: (context, _) {
-          final db = Provider.of<DatabaseService>(context, listen: false);
-          return Scaffold(
-            backgroundColor: AppColors.primaryColor,
-            appBar: AppBar(
-              title: Text(widget.title),
-              actions: [
-                FlatButton(
-                  onPressed: () async {
-                    _authService.signOut();
-                  },
-                  child: Icon(
-                    Icons.logout,
+    return StreamProvider<List<WeightRecord>>(
+      create: (context) => widget.databaseService.weightRecords,
+      child: Consumer<List<WeightRecord>>(
+        builder: (context, list, _) => Scaffold(
+          backgroundColor: AppColors.primaryColor,
+          appBar: AppBar(
+            title: Text(widget.title),
+          ),
+          body: Center(
+            child: Container(
+              child: ListView.builder(
+                itemCount: list.length,
+                itemBuilder: (context, index) => ListTile(
+                  leading: Icon(
+                    Icons.line_weight,
                     color: Colors.white,
                   ),
-                )
-              ],
-            ),
-            body: Center(
-              child: StreamProvider<List<WeightRecord>>(
-                create: (context) => db.weightRecords,
-                builder: (context, child) => WeightChart(),
+                  title: Text(
+                    list[index].date,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Weight: ${list[index].weight}Kg',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                  trailing: Wrap(
+                    children: [
+                      Visibility(
+                        visible: list.length > 2,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => {
+                            _deleteRecord(
+                              list.removeAt(index),
+                            ),
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => _editRecord(list[index]),
+                      )
+                    ],
+                  ),
+                ),
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => _addWeight(db),
-              tooltip: 'Increment',
-              child: Icon(Icons.add),
-            ),
-          );
-        });
+          ),
+        ),
+      ),
+    );
   }
 }

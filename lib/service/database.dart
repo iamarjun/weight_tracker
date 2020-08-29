@@ -16,6 +16,14 @@ class DatabaseService {
         .setData({'weight': weight});
   }
 
+  Future deleteWeightRecord(String date) async {
+    return await userRef
+        .document(uid)
+        .collection('records')
+        .document(date)
+        .delete();
+  }
+
   List<WeightRecord> _weightRecordListFromSnapshot(QuerySnapshot snapshot) {
     return snapshot.documents
         .map((document) => WeightRecord.fromQuerySnapshot(document))
