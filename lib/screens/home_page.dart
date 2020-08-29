@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:weight_tracker/colors.dart';
 import 'package:weight_tracker/screens/weight_chart.dart';
+import 'package:weight_tracker/service/auth.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -16,6 +17,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   DateTime selectedDate;
   TextEditingController _controller;
+  AuthService _authService;
 
   Future<Null> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
@@ -163,6 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     selectedDate = DateTime.now();
     _controller = TextEditingController();
+    _authService = AuthService();
   }
 
   @override
@@ -171,6 +174,17 @@ class _MyHomePageState extends State<MyHomePage> {
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          FlatButton(
+            onPressed: () async {
+              _authService.signOut();
+            },
+            child: Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+          )
+        ],
       ),
       body: Center(
         child: WeightChart(),
