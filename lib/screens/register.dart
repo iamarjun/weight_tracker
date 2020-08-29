@@ -3,20 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:weight_tracker/colors.dart';
 import 'package:weight_tracker/service/auth.dart';
 
-class SignIn extends StatefulWidget {
+class Register extends StatefulWidget {
   final Function toggleView;
-  SignIn({Key key, this.toggleView}) : super(key: key);
+  Register({Key key, this.toggleView}) : super(key: key);
 
   @override
-  _SignInState createState() => _SignInState();
+  _RegisterState createState() => _RegisterState();
 }
 
-class _SignInState extends State<SignIn> {
+class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
 
   AuthService _authService;
   TextEditingController _emailTextController;
   TextEditingController _passwordTextController;
+  TextEditingController _reEnterPasswordTextController;
 
   bool _obscureText;
   void _toggle() {
@@ -32,6 +33,7 @@ class _SignInState extends State<SignIn> {
     _authService = AuthService();
     _emailTextController = TextEditingController();
     _passwordTextController = TextEditingController();
+    _reEnterPasswordTextController = TextEditingController();
   }
 
   @override
@@ -39,12 +41,14 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
-        title: Text('Sign In'),
+        title: Text(
+          'Register',
+        ),
         actions: [
           FlatButton(
             onPressed: () => widget.toggleView(),
             child: Text(
-              'Register',
+              'Sign In',
               style: TextStyle(
                 color: Colors.white,
               ),
@@ -114,21 +118,53 @@ class _SignInState extends State<SignIn> {
                   },
                 ),
                 SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                  controller: _reEnterPasswordTextController,
+                  onTap: () {},
+                  obscureText: !_obscureText,
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () => _toggle(),
+                    ),
+                    hintText: 'Password',
+                    border: InputBorder.none,
+                  ),
+                  onSaved: (String value) {
+                    // This optional block of code can be used to run
+                    // code when the user saves the form.
+                  },
+                  validator: (String password) {
+                    Pattern pattern =
+                        r'^(?=.*[0-9]+.*)(?=.*[a-zA-Z]+.*)[0-9a-zA-Z]{6,}$';
+                    RegExp regex = new RegExp(pattern);
+                    if (!regex.hasMatch(password))
+                      return '''Password that must contain at least one letter, at least one number, and be longer than six charaters''';
+                    else
+                      return null;
+                  },
+                ),
+                SizedBox(
                   height: 25,
                 ),
                 RaisedButton(
                   color: Colors.blue,
                   child: Text(
-                    'Sign In',
+                    'Register',
                     style: TextStyle(
                       color: Colors.white,
                     ),
                   ),
                   onPressed: () async {
-                    if (_formKey.currentState.validate()) {
-                      print(_emailTextController.text);
-                      print(_passwordTextController.text);
-
+                    if (_formKey.currentState.validate() &&
+                        _passwordTextController.text ==
+                            _reEnterPasswordTextController.text) {
                       var email = _emailTextController.text;
                       var passowrd = _passwordTextController.text;
 
@@ -136,9 +172,9 @@ class _SignInState extends State<SignIn> {
                       print(passowrd);
 
                       dynamic result = await _authService
-                          .signInWithEmailAndPassword(email, passowrd);
+                          .registerWithEmailAndPassword(email, passowrd);
                       if (result != null) {
-                        print('signed in');
+                        print('registered');
                         print(result);
                       } else {
                         Scaffold.of(context).showSnackBar(
