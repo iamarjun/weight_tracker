@@ -20,8 +20,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final DateTime picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
-        firstDate: DateTime(2015, 8),
-        lastDate: DateTime(2101));
+        firstDate: DateTime(2020),
+        lastDate: DateTime.now());
     if (picked != null && picked != selectedDate)
       setState(() {
         selectedDate = picked;
@@ -29,7 +29,13 @@ class _MyHomePageState extends State<MyHomePage> {
       });
   }
 
-  void _incrementCounter() {
+  void _resetDate() {
+    setState(() {
+      _controller.text = '';
+    });
+  }
+
+  void _addWeight() {
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -47,9 +53,12 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Text('Add a record'),
+                  Text(
+                    'Add a record',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(
-                    height: 5,
+                    height: 15,
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -105,6 +114,40 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     ),
                   ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      OutlineButton(
+                        padding: const EdgeInsets.all(16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24.0),
+                        ),
+                        color: Colors.grey[200],
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          _resetDate();
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      MaterialButton(
+                        padding: const EdgeInsets.all(16.0),
+                        color: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24.0),
+                        ),
+                        child: Text(
+                          'Add',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
@@ -132,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: WeightChart(),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _addWeight,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ),
