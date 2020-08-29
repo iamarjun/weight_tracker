@@ -1,5 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:weight_tracker/models/weight_record.dart';
 
 class WeightChart extends StatefulWidget {
   @override
@@ -16,6 +18,8 @@ class _WeightChartState extends State<WeightChart> {
 
   @override
   Widget build(BuildContext context) {
+    final weightRecords = Provider.of<List<WeightRecord>>(context);
+
     return Stack(
       children: <Widget>[
         AspectRatio(
@@ -30,7 +34,7 @@ class _WeightChartState extends State<WeightChart> {
               padding: const EdgeInsets.only(
                   right: 18.0, left: 12.0, top: 24, bottom: 12),
               child: LineChart(
-                showAvg ? avgData() : mainData(),
+                showAvg ? avgData() : mainData(weightRecords),
               ),
             ),
           ),
@@ -57,7 +61,7 @@ class _WeightChartState extends State<WeightChart> {
     );
   }
 
-  LineChartData mainData() {
+  LineChartData mainData(List<WeightRecord> weightRecords) {
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -81,13 +85,14 @@ class _WeightChartState extends State<WeightChart> {
           showTitles: true,
           reservedSize: 22,
           textStyle: const TextStyle(
-              color: Color(0xff68737d),
-              fontWeight: FontWeight.bold,
-              fontSize: 16),
+            color: Color(0xff68737d),
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
           getTitles: (value) {
             switch (value.toInt()) {
               case 2:
-                return 'MAR';
+                return weightRecords[1].date;
               case 5:
                 return 'JUN';
               case 8:
@@ -102,16 +107,22 @@ class _WeightChartState extends State<WeightChart> {
           textStyle: const TextStyle(
             color: Color(0xff67727d),
             fontWeight: FontWeight.bold,
-            fontSize: 15,
+            fontSize: 12,
           ),
           getTitles: (value) {
             switch (value.toInt()) {
               case 1:
-                return '10k';
+                return '50 Kg';
+              case 2:
+                return '60 Kg';
               case 3:
-                return '30k';
+                return '70 Kg';
+              case 4:
+                return '90 Kg';
               case 5:
-                return '50k';
+                return '100 Kg';
+              case 6:
+                return '110 Kg';
             }
             return '';
           },
@@ -125,7 +136,7 @@ class _WeightChartState extends State<WeightChart> {
       minX: 0,
       maxX: 11,
       minY: 0,
-      maxY: 6,
+      maxY: 7,
       lineBarsData: [
         LineChartBarData(
           spots: [

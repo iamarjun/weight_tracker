@@ -1,7 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:weight_tracker/colors.dart';
+import 'package:weight_tracker/models/user.dart';
+import 'package:weight_tracker/models/weight_record.dart';
 import 'package:weight_tracker/screens/weight_chart.dart';
 import 'package:weight_tracker/service/auth.dart';
+import 'package:weight_tracker/service/database.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -15,30 +21,29 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  DateTime _selectedDate;
-  TextEditingController _controller;
+  TextEditingController _dateController;
+  TextEditingController _weightController;
   AuthService _authService;
 
   Future<Null> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
-        initialDate: _selectedDate,
+        initialDate: DateTime.now(),
         firstDate: DateTime(2020),
         lastDate: DateTime.now());
-    if (picked != null && picked != _selectedDate)
+    if (picked != null)
       setState(() {
-        _selectedDate = picked;
-        _controller.text = _selectedDate.toLocal().toString().split(' ')[0];
+        _dateController.text = picked.toLocal().toString().split(' ')[0];
       });
   }
 
   void _resetDate() {
     setState(() {
-      _controller.text = '';
+      _dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
     });
   }
 
-  void _addWeight() {
+  void _addWeight(DatabaseService db) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -76,6 +81,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: Colors.grey[200],
                     ),
                     child: TextFormField(
+                      controller: _weightController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ], // Only numbers can be entered
                       decoration: const InputDecoration(
                         hintText: 'Weight',
                         border: InputBorder.none,
@@ -103,7 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: Colors.grey[200],
                     ),
                     child: TextFormField(
-                      controller: _controller,
+                      showCursor: false,
+                      controller: _dateController,
                       onTap: () => _selectDate(context),
                       decoration: const InputDecoration(
                         suffixIcon: Icon(Icons.date_range),
@@ -151,7 +162,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             color: Colors.white,
                           ),
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () async {
+                          var weight = _weightController.text;
+                          var date = _dateController.text;
+                          db.addWeightRecord(weight, date);
+                          _resetDate();
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ],
                   )
@@ -167,37 +184,51 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
-    _controller = TextEditingController();
+    _dateController = TextEditingController();
+    _weightController = TextEditingController();
     _authService = AuthService();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryColor,
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          FlatButton(
-            onPressed: () async {
-              _authService.signOut();
-            },
-            child: Icon(
-              Icons.logout,
-              color: Colors.white,
-            ),
+    final user = Provider.of<User>(context);
+
+    return MultiProvider(
+        providers: [
+          Provider<DatabaseService>(
+            create: (context) => DatabaseService(uid: user.uid),
           )
         ],
-      ),
-      body: Center(
-        child: WeightChart(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addWeight,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
-    );
+        builder: (context, _) {
+          final db = Provider.of<DatabaseService>(context, listen: false);
+          return Scaffold(
+            backgroundColor: AppColors.primaryColor,
+            appBar: AppBar(
+              title: Text(widget.title),
+              actions: [
+                FlatButton(
+                  onPressed: () async {
+                    _authService.signOut();
+                  },
+                  child: Icon(
+                    Icons.logout,
+                    color: Colors.white,
+                  ),
+                )
+              ],
+            ),
+            body: Center(
+              child: StreamProvider<List<WeightRecord>>(
+                create: (context) => db.weightRecords,
+                builder: (context, child) => WeightChart(),
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => _addWeight(db),
+              tooltip: 'Increment',
+              child: Icon(Icons.add),
+            ),
+          );
+        });
   }
 }
