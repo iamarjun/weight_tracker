@@ -217,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     _authService.signOut();
                   },
                   child: Icon(
-                    Icons.logout,
+                    Icons.exit_to_app,
                     color: Colors.white,
                   ),
                 )
