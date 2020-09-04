@@ -1,6 +1,17 @@
-# weight_tracker
+# Weight Tracker
 
-A new Flutter application.
+A Flutter application to track your fitness goals.
+
+## Screenshots
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133648.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133705.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133713.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133721.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133807.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133819.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133831.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133857.png" width="300" >
+<img src="https://github.com/iamarjun/weight_tracker/blob/master/screenshots/Screenshot_20200904-133907.png" width="300" >
 
 ## Getting Started
 
